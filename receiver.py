@@ -3,10 +3,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 #import urlparse
 import urllib
 import time
+import pprint
 
 #Create a config file for these variables later
 hostname = ""
 hostport = 61000
+pp = pprint.PrettyPrinter(indent=4)
 
 class HookReceiver(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -17,10 +19,9 @@ class HookReceiver(BaseHTTPRequestHandler):
 
         def do_POST(self):
                 length = int(self.headers['Content-Length'])
-                #post_data = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8'))
+                post_data = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8'))
                 print("INCOMING POST CONTENTS TO SCREEN")
-                post_data = self.rfile.read(length)
-                print(post_data)
+                pp.pprint(post_data)
                 self.send_response(200)
                 self.send_header("Content-type", "text/json")
                 self.end_headers()
