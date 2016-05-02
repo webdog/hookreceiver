@@ -25,21 +25,26 @@ class HookReceiver(BaseHTTPRequestHandler):
 
 		def do_POST(self):
                     length = int(self.headers['Content-Length'])
-                    #post_data = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8'))
+                    #The header below descibes the type of message this is.
                     action = self.headers['X-GitHub-Event']
+                    #Decode the binary message and move it into a JSON object
                     post_data = json.loads(self.rfile.read(length).decode("utf-8"))
                     if "create" in action:
                         contents = (action, post_data['ref'])
-                        self._deliver(contents)
+                        #self._deliver(contents)
                     elif "pull_request" in action:
-                        print("found a pull request event")
                         url = post_data['pull_request']['url']
                         title = post_data['pull_request']['title']
-                        contents = "Pull Request %s(%s) was %s\n%s" %(post_data['number'], title, post_data['action'], url)
-                        print(contents)
-                        self._deliver("Beep-Boop Hubot alert")
+                        
+                        contents = "Pull Request %s(%s) was %s\n%s" %(post_data['number'], title, post_data['action'], url) 
                         self._deliver(contents)
-
+                    elif "status" in action:
+                        url = post_data["commit"]["html_url"]
+                        state = post_data["state"]
+                        branch = post_data["branches"][0]["name"]
+                        
+                        contents = "Build Triggered on Branch %s with status update: %s\n%s" % (branch, state, url)
+                        self._deliver(contents)
                     self.send_response(200)
                     self.send_header("Content-type", "text/json")
                     self.end_headers()
